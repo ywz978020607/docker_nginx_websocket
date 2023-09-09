@@ -1,0 +1,32 @@
+version: '3'
+services:
+  wsnginx:
+    image: nginx:latest
+    # container_name: nginxwithupload
+    ports:
+      - "8765:8765"
+    volumes:
+      - ..:/src
+      # - /var/www/html:/src/files #you can change this ori path, be consistent with next one
+      - ./nginx:/etc/nginx/conf.d
+    depends_on:
+      - wsbackend
+  wsbackend:
+    environment:
+      - TZ=Asia/Shanghai
+    build: .
+    image: wsbackend
+    # container_name: djangoback
+    command: #串行 最后一个暂驻
+      - bash
+      - -c
+      - |
+          # python server/runserver.py  > docker/log/runserver.log 2>&1 &
+          # uwsgi --ini server/uwsgi.ini && tail -f /dev/null
+          python server/runserver.py  > docker/log/runserver.log 2>&1
+    volumes:
+      - ..:/src
+      # - /var/www/html:/src/files #you can change this ori path, be consistent with last one
+    expose:
+      - "8000"
+    restart: always
